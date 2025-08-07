@@ -5,7 +5,9 @@ using System.Reflection.Emit;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class GameRashDbContext : DbContext
+namespace GameRash.Data
+{
+    public class GameRashDbContext : DbContext
 {
     public GameRashDbContext(DbContextOptions<GameRashDbContext> options)
         : base(options)
@@ -168,4 +170,5 @@ public class GameRashDbContext : DbContext
             }
         );
     }
+}
 }

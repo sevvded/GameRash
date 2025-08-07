@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using GameRash.Models;
+using GameRash.Data;
 using Microsoft.AspNetCore.Builder;
 
 

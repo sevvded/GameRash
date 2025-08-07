@@ -8,13 +8,14 @@ namespace GameRash.Models
 {
     public class Library
     {
+        [Key]
         public int LibraryID { get; set; }
 
         public int UserID { get; set; }
-        public User User { get; set; }
+        public User? User { get; set; }
 
         public int GameID { get; set; }
-        public Game Game { get; set; }
+        public Game? Game { get; set; }
 
         public DateTime AddedDate { get; set; }
     }
