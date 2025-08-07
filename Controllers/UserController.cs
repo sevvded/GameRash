@@ -339,7 +339,7 @@ namespace GameRash.Controllers
                     .Include(w => w.Game)
                     .Where(w => w.UserID == id)
                     .ToListAsync();
-
+/* return Ok(wishliste); */
                 return Ok(wishlist);
             }
             catch (Exception ex)
