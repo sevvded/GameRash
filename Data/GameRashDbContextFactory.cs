@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-public class GameRashDbContextFactory : IDesignTimeDbContextFactory<GameRashDbContext>
+namespace GameRash.Data
+{
+    public class GameRashDbContextFactory : IDesignTimeDbContextFactory<GameRashDbContext>
 {
     public GameRashDbContext CreateDbContext(string[] args)
     {
@@ -19,4 +21,5 @@ public class GameRashDbContextFactory : IDesignTimeDbContextFactory<GameRashDbCo
 
         return new GameRashDbContext(builder.Options);
     }
+}
 }
