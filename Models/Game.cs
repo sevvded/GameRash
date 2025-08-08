@@ -17,6 +17,7 @@ namespace GameRash.Models
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string CoverImage { get; set; } = string.Empty;
+        public decimal Price { get; set; } = 0;
 
         public ICollection<Library> Libraries { get; set; } = new List<Library>();
         public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
