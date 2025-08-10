@@ -1,0 +1,95 @@
+@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Kütüphanem - GameRash";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="hero-section text-center py-5 mb-4">
+        <h1 class="display-4 fw-bold text-white mb-3">📚 Kütüphanem</h1>
+        <p class="lead text-white-50 mb-4">Satın aldığınız oyunlar</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-gamepad fa-4x text-muted mb-4"></i>
+            <h3 class="text-muted">Kütüphaneniz boş</h3>
+            <p class="text-muted">Henüz hiç oyun satın almamışsınız.</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                <i class="fas fa-shopping-cart me-2"></i>Oyun Mağazasına Git
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Games Grid -->
+        <div class="row">
+            @foreach (var game in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 game-card-inner">
+                        <div class="card-img-top-container">
+                            <img src="@(string.IsNullOrEmpty(game.CoverImage) ? "/images/default-game.jpg" : "/images/" + game.CoverImage)" 
+                                 class="card-img-top" alt="@game.Title" 
+                                 onerror="this.src='/images/default-game.jpg'">
+                            <div class="card-overlay">
+                                <div class="overlay-buttons">
+                                    <button class="btn btn-success btn-sm">
+                                        <i class="fas fa-play me-1"></i>Oyna
+                                    </button>
+                                    <button class="btn btn-outline-light btn-sm" onclick="removeFromLibrary(@game.GameID)">
+                                        <i class="fas fa-trash me-1"></i>Kaldır
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@game.Title</h5>
+                            <p class="card-text text-muted small">@game.DeveloperName</p>
+                            <p class="card-text">@(game.Description.Length > 100 ? game.Description.Substring(0, 100) + "..." : game.Description)</p>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        @(game.AddedDate?.ToString("dd.MM.yyyy") ?? "Bilinmiyor")
+                                    </small>
+                                    <span class="price fw-bold text-success">₺@game.Price.ToString("F2")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function removeFromLibrary(gameId) {
+            if (confirm('Bu oyunu kütüphanenizden kaldırmak istediğinizden emin misiniz?')) {
+                fetch('/Library/RemoveFromLibrary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ gameId: gameId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Bir hata oluştu');
+                });
+            }
+        }
+    </script>
+}

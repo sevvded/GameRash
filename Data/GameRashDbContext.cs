@@ -157,16 +157,27 @@ namespace GameRash.Data
                 GameID = 1,
                 DeveloperID = 1,
                 Title = "Epic Adventure",
-                Description = "An amazing RPG adventure game",
-                CoverImage = "epic_adventure_cover.jpg"
+                Description = "An amazing RPG adventure game with stunning graphics and immersive gameplay. Experience epic battles and explore mysterious worlds.",
+                CoverImage = "epic_adventure_cover.jpg",
+                Price = 299.99m
             },
             new Game
             {
                 GameID = 2,
                 DeveloperID = 1,
                 Title = "Space Explorer",
-                Description = "Explore the vast universe",
-                CoverImage = "space_explorer_cover.jpg"
+                Description = "Explore the vast universe in this space exploration game. Discover new planets, trade resources, and survive in the harsh environment of space.",
+                CoverImage = "space_explorer_cover.jpg",
+                Price = 199.99m
+            },
+            new Game
+            {
+                GameID = 3,
+                DeveloperID = 1,
+                Title = "Cyberpunk 2077",
+                Description = "An open-world action-adventure story set in Night City, a megalopolis obsessed with power, glamour and body modification. You play as V, a mercenary outlaw going after a one-of-a-kind implant that is the key to immortality.",
+                CoverImage = "indir.jpeg",
+                Price = 599.99m
             }
         );
     }
