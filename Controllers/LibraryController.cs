@@ -5,9 +5,12 @@ using GameRash.Models;
 
 namespace GameRash.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class LibraryController : ControllerBase
+    public class AddToLibraryRequest
+    {
+        public int GameId { get; set; }
+    }
+
+    public class LibraryController : Controller
     {
         private readonly GameRashDbContext _context;
         private readonly ILogger<LibraryController> _logger;
@@ -18,184 +21,106 @@ namespace GameRash.Controllers
             _logger = logger;
         }
 
-        // GET: api/library
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetLibraries()
+        public async Task<IActionResult> Index()
         {
-            try
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
             {
-                var libraries = await _context.Libraries
-                    .Include(l => l.User)
-                    .Include(l => l.Game)
-                    .Select(l => new
-                    {
-                        l.LibraryID,
-                        l.UserID,
-                        Username = l.User != null ? l.User.Username : null,
-                        l.GameID,
-                        GameTitle = l.Game != null ? l.Game.Title : null,
-                        l.AddedDate
-                    })
-                    .ToListAsync();
+                return RedirectToAction("Login", "Auth");
+            }
 
-                return Ok(libraries);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting libraries");
-                return StatusCode(500, new { error = ex.Message });
-            }
+            var userLibrary = await _context.Libraries
+                .Include(l => l.Game)
+                .ThenInclude(g => g.Developer)
+                .Where(l => l.UserID == int.Parse(userId))
+                .Select(l => new
+                {
+                    l.Game.GameID,
+                    l.Game.Title,
+                    l.Game.Description,
+                    l.Game.CoverImage,
+                    l.Game.Price,
+                    DeveloperName = l.Game.Developer != null ? l.Game.Developer.StudioName : "Unknown",
+                    AddedDate = l.AddedDate
+                })
+                .ToListAsync();
+
+            return View(userLibrary);
         }
 
-        // GET: api/library/user/5
-        [HttpGet("user/{userId}")]
-        public async Task<ActionResult<IEnumerable<object>>> GetUserLibrary(int userId)
-        {
-            try
-            {
-                var userLibrary = await _context.Libraries
-                    .Include(l => l.Game)
-                    .Where(l => l.UserID == userId)
-                    .Select(l => new
-                    {
-                        l.LibraryID,
-                        l.GameID,
-                        GameTitle = l.Game != null ? l.Game.Title : null,
-                        GameDescription = l.Game != null ? l.Game.Description : null,
-                        CoverImage = l.Game != null ? l.Game.CoverImage : null,
-                        l.AddedDate
-                    })
-                    .ToListAsync();
-
-                return Ok(userLibrary);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting library for user {UserId}", userId);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // POST: api/library
         [HttpPost]
-        public async Task<ActionResult<Library>> AddToLibrary(Library library)
+        public async Task<IActionResult> AddToLibrary([FromBody] AddToLibraryRequest request)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Giriş yapmanız gerekiyor" });
+            }
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                // Check if game is already in user's library
-                var existingLibrary = await _context.Libraries
-                    .FirstOrDefaultAsync(l => l.UserID == library.UserID && l.GameID == library.GameID);
-                
-                if (existingLibrary != null)
-                {
-                    return BadRequest("Game is already in user's library");
-                }
-
-                // Check if user exists
-                var user = await _context.Users.FindAsync(library.UserID);
-                if (user == null)
-                {
-                    return BadRequest("User not found");
-                }
-
-                // Check if game exists
-                var game = await _context.Games.FindAsync(library.GameID);
+                // Önce oyunun var olup olmadığını kontrol et
+                var game = await _context.Games.FindAsync(request.GameId);
                 if (game == null)
                 {
-                    return BadRequest("Game not found");
+                    return Json(new { success = false, message = "Oyun bulunamadı" });
                 }
 
-                library.AddedDate = DateTime.UtcNow;
+                var existingLibrary = await _context.Libraries
+                    .FirstOrDefaultAsync(l => l.UserID == int.Parse(userId) && l.GameID == request.GameId);
+
+                if (existingLibrary != null)
+                {
+                    return Json(new { success = false, message = "Bu oyun zaten kütüphanenizde" });
+                }
+
+                var library = new Library
+                {
+                    UserID = int.Parse(userId),
+                    GameID = request.GameId,
+                    AddedDate = DateTime.UtcNow
+                };
+
                 _context.Libraries.Add(library);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetUserLibrary), new { userId = library.UserID }, library);
+                return Json(new { success = true, message = "Oyun kütüphaneye eklendi" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding game to library");
-                return StatusCode(500, new { error = ex.Message });
+                return Json(new { success = false, message = "Bir hata oluştu: " + ex.Message });
             }
         }
 
-        // DELETE: api/library/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveFromLibrary(int id)
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromLibrary(int gameId)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Giriş yapmanız gerekiyor" });
+            }
+
             try
             {
-                var library = await _context.Libraries.FindAsync(id);
+                var library = await _context.Libraries
+                    .FirstOrDefaultAsync(l => l.UserID == int.Parse(userId) && l.GameID == gameId);
+
                 if (library == null)
                 {
-                    return NotFound($"Library entry with ID {id} not found");
+                    return Json(new { success = false, message = "Oyun kütüphanenizde bulunamadı" });
                 }
 
                 _context.Libraries.Remove(library);
                 await _context.SaveChangesAsync();
 
-                return NoContent();
+                return Json(new { success = true, message = "Oyun kütüphaneden kaldırıldı" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error removing game from library with ID {LibraryId}", id);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // DELETE: api/library/user/5/game/3
-        [HttpDelete("user/{userId}/game/{gameId}")]
-        public async Task<IActionResult> RemoveGameFromUserLibrary(int userId, int gameId)
-        {
-            try
-            {
-                var library = await _context.Libraries
-                    .FirstOrDefaultAsync(l => l.UserID == userId && l.GameID == gameId);
-                
-                if (library == null)
-                {
-                    return NotFound($"Game {gameId} not found in user {userId}'s library");
-                }
-
-                _context.Libraries.Remove(library);
-                await _context.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing game {GameId} from user {UserId}'s library", gameId, userId);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // GET: api/library/check/user/5/game/3
-        [HttpGet("check/user/{userId}/game/{gameId}")]
-        public async Task<ActionResult<object>> CheckGameInLibrary(int userId, int gameId)
-        {
-            try
-            {
-                var library = await _context.Libraries
-                    .FirstOrDefaultAsync(l => l.UserID == userId && l.GameID == gameId);
-
-                var result = new
-                {
-                    UserID = userId,
-                    GameID = gameId,
-                    IsInLibrary = library != null,
-                    AddedDate = library?.AddedDate
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error checking if game {GameId} is in user {UserId}'s library", gameId, userId);
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError(ex, "Error removing game from library");
+                return Json(new { success = false, message = "Bir hata oluştu" });
             }
         }
     }
