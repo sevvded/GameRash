@@ -38,6 +38,8 @@ namespace GameRash.Controllers
 
                 var hashedPassword = HashPassword(password);
                 var user = await _context.Users
+                    .Include(u => u.Admin)
+                    .Include(u => u.Developer)
                     .FirstOrDefaultAsync(u => u.Username == username && u.Password == hashedPassword);
 
                 if (user == null)
@@ -50,6 +52,20 @@ namespace GameRash.Controllers
                 HttpContext.Session.SetString("UserId", user.UserID.ToString());
                 HttpContext.Session.SetString("Username", user.Username);
                 HttpContext.Session.SetString("Email", user.Email);
+
+                // Admin ve Developer kontrolü
+                if (user.Admin != null)
+                {
+                    HttpContext.Session.SetString("IsAdmin", "true");
+                    HttpContext.Session.SetString("AdminId", user.Admin.AdminID.ToString());
+                }
+
+                if (user.Developer != null)
+                {
+                    HttpContext.Session.SetString("IsDeveloper", "true");
+                    HttpContext.Session.SetString("DeveloperId", user.Developer.DeveloperID.ToString());
+                    HttpContext.Session.SetString("StudioName", user.Developer.StudioName ?? "");
+                }
 
                 return RedirectToAction("Index", "Home");
             }
@@ -69,7 +85,7 @@ namespace GameRash.Controllers
 
         // POST: /auth/register
         [HttpPost]
-        public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword)
+        public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword, string? userType, string? studioName, string? bio)
         {
             try
             {
@@ -92,6 +108,13 @@ namespace GameRash.Controllers
                     return View();
                 }
 
+                // Developer kayıt kontrolü
+                if (userType == "developer" && string.IsNullOrEmpty(studioName))
+                {
+                    TempData["ErrorMessage"] = "Developer kaydı için stüdyo adı gereklidir.";
+                    return View();
+                }
+
                 // Kullanıcı adı ve email kontrolü
                 var existingUser = await _context.Users
                     .FirstOrDefaultAsync(u => u.Username == username || u.Email == email);
@@ -102,6 +125,11 @@ namespace GameRash.Controllers
                     return View();
                 }
 
+                using var transaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // User oluştur
                 var hashedPassword = HashPassword(password);
                 var newUser = new User
                 {
@@ -113,8 +141,37 @@ namespace GameRash.Controllers
                 _context.Users.Add(newUser);
                 await _context.SaveChangesAsync();
 
+                    // Kullanıcı tipine göre ek kayıt
+                    if (userType == "admin")
+                    {
+                        var admin = new Admin
+                        {
+                            UserID = newUser.UserID
+                        };
+                        _context.Admins.Add(admin);
+                    }
+                    else if (userType == "developer")
+                    {
+                        var developer = new Developer
+                        {
+                            UserID = newUser.UserID,
+                            StudioName = studioName!,
+                            Bio = bio ?? ""
+                        };
+                        _context.Developers.Add(developer);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
                 TempData["SuccessMessage"] = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
                 return RedirectToAction("Login");
+            }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
             catch (Exception ex)
             {

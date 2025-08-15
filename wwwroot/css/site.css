@@ -1,28 +1,14 @@
-/* GameRash Gaming Store Styles */
-
 :root {
     --primary-color: #6c5ce7;
     --secondary-color: #a29bfe;
     --accent-color: #fd79a8;
-    --dark-bg: #2d3436;
-    --card-bg: #ffffff;
-    --text-primary: #2d3436;
-    --text-secondary: #636e72;
     --success-color: #00b894;
     --warning-color: #fdcb6e;
     --danger-color: #e17055;
 }
 
-html {
-    font-size: 14px;
-    position: relative;
-    min-height: 100%;
-}
-
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
+* {
+    box-sizing: border-box;
 }
 
 body {
@@ -124,7 +110,6 @@ body {
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
-    font-size: 1.1rem;
 }
 
 .card-text {
@@ -132,7 +117,6 @@ body {
     line-height: 1.6;
 }
 
-/* Rating Stars */
 .rating {
     display: flex;
     align-items: center;
@@ -143,7 +127,6 @@ body {
     margin-right: 2px;
 }
 
-/* Price */
 .price {
     font-size: 1.2rem;
     color: var(--success-color);
@@ -154,7 +137,6 @@ body {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border: none;
     border-radius: 25px;
-    padding: 10px 25px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -178,7 +160,6 @@ body {
 .navbar {
     background: rgba(255,255,255,0.95) !important;
     backdrop-filter: blur(10px);
-    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
 }
 
 .navbar-brand {
@@ -219,9 +200,6 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 

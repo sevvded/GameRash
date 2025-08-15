@@ -95,56 +95,6 @@ namespace GameRash.Controllers
             }
         }
 
-        // GET: api/payment/purchase/5
-        [HttpGet("purchase/{purchaseId}")]
-        public async Task<ActionResult<IEnumerable<Payment>>> GetPaymentsByPurchase(int purchaseId)
-        {
-            try
-            {
-                var payments = await _context.Payments
-                    .Where(p => p.PurchaseID == purchaseId)
-                    .ToListAsync();
-
-                return Ok(payments);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting payments for purchase {PurchaseId}", purchaseId);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // GET: api/payment/user/5
-        [HttpGet("user/{userId}")]
-        public async Task<ActionResult<IEnumerable<object>>> GetPaymentsByUser(int userId)
-        {
-            try
-            {
-                var payments = await _context.Payments
-                    .Include(p => p.Purchase)
-                        .ThenInclude(pur => pur.Game)
-                    .Where(p => p.Purchase.UserID == userId)
-                    .Select(p => new
-                    {
-                        p.PaymentID,
-                        p.PurchaseID,
-                        p.PaymentMethod,
-                        p.PaymentDate,
-                        p.Status,
-                        Amount = CalculateAmount(p.Purchase.GameID),
-                        GameTitle = p.Purchase.Game != null ? p.Purchase.Game.Title : null
-                    })
-                    .OrderByDescending(p => p.PaymentDate)
-                    .ToListAsync();
-
-                return Ok(payments);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting payments for user {UserId}", userId);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
 
         // POST: api/payment
         [HttpPost]
@@ -196,10 +146,8 @@ namespace GameRash.Controllers
                 _context.Payments.Add(payment);
                 await _context.SaveChangesAsync();
 
-                // If payment successful, update purchase status or any other business logic
                 if (paymentResult.Success)
                 {
-                    // Add any post-payment logic here
                     _logger.LogInformation("Payment processed successfully for Purchase ID: {PurchaseId}", request.PurchaseID);
                 }
 
@@ -208,82 +156,6 @@ namespace GameRash.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing payment");
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // PUT: api/payment/5/status
-        [HttpPut("{id}/status")]
-        public async Task<IActionResult> UpdatePaymentStatus(int id, PaymentStatusUpdate statusUpdate)
-        {
-            try
-            {
-                var payment = await _context.Payments.FindAsync(id);
-                if (payment == null)
-                {
-                    return NotFound($"Payment with ID {id} not found");
-                }
-
-                payment.Status = statusUpdate.Status;
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Payment status updated to {Status} for Payment ID: {PaymentId}", statusUpdate.Status, id);
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating payment status for ID {PaymentId}", id);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // POST: api/payment/5/refund
-        [HttpPost("{id}/refund")]
-        public async Task<ActionResult<object>> ProcessRefund(int id, RefundRequest request)
-        {
-            try
-            {
-                var payment = await _context.Payments
-                    .Include(p => p.Purchase)
-                    .FirstOrDefaultAsync(p => p.PaymentID == id);
-
-                if (payment == null)
-                {
-                    return NotFound($"Payment with ID {id} not found");
-                }
-
-                if (payment.Status != "Completed")
-                {
-                    return BadRequest("Can only refund completed payments");
-                }
-
-                // Process refund with payment gateway
-                var refundResult = await ProcessRefundWithGateway(payment, request.Amount, request.Reason);
-
-                if (!refundResult.Success)
-                {
-                    return BadRequest($"Refund failed: {refundResult.ErrorMessage}");
-                }
-
-                // Update payment status
-                payment.Status = request.Amount >= CalculateAmount(payment.Purchase.GameID) ? "Refunded" : "Partially Refunded";
-                await _context.SaveChangesAsync();
-
-                var result = new
-                {
-                    Message = "Refund processed successfully",
-                    PaymentID = id,
-                    RefundAmount = request.Amount,
-                    NewStatus = payment.Status,
-                    RefundTransactionId = refundResult.TransactionId
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing refund for payment ID {PaymentId}", id);
                 return StatusCode(500, new { error = ex.Message });
             }
         }
@@ -316,7 +188,6 @@ namespace GameRash.Controllers
 
                 var monthlyRevenue = await _context.Payments
                     .Where(p => p.Status == "Completed")
-                    .Include(p => p.Purchase)
                     .GroupBy(p => new { p.PaymentDate.Year, p.PaymentDate.Month })
                     .Select(g => new
                     {
@@ -373,19 +244,6 @@ namespace GameRash.Controllers
                 ErrorMessage = null
             };
         }
-
-        private async Task<RefundResult> ProcessRefundWithGateway(Payment payment, decimal amount, string reason)
-        {
-            // Implement actual refund gateway integration here
-            await Task.Delay(100); // Simulate API call
-
-            return new RefundResult
-            {
-                Success = true,
-                TransactionId = Guid.NewGuid().ToString(),
-                ErrorMessage = null
-            };
-        }
     }
 
     // DTOs for payment operations
@@ -399,25 +257,7 @@ namespace GameRash.Controllers
         public string? BillingAddress { get; set; }
     }
 
-    public class PaymentStatusUpdate
-    {
-        public string Status { get; set; } = string.Empty;
-    }
-
-    public class RefundRequest
-    {
-        public decimal Amount { get; set; }
-        public string Reason { get; set; } = string.Empty;
-    }
-
     public class PaymentResult
-    {
-        public bool Success { get; set; }
-        public string? TransactionId { get; set; }
-        public string? ErrorMessage { get; set; }
-    }
-
-    public class RefundResult
     {
         public bool Success { get; set; }
         public string? TransactionId { get; set; }
