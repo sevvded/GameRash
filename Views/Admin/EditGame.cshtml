@@ -4,113 +4,115 @@
 }
 
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Oyun Düzenle: @Model.Title</h4>
-                </div>
-                <div class="card-body">
-                    @if (TempData["ErrorMessage"] != null)
-                    {
-                        <div class="alert alert-danger" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            @TempData["ErrorMessage"]
-                        </div>
-                    }
+    <div class="content-wrapper">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Oyun Düzenle: @Model.Title</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                @TempData["ErrorMessage"]
+                            </div>
+                        }
 
-                    <form method="post" enctype="multipart/form-data" asp-action="EditGame" asp-route-id="@Model.GameID">
-                        <input type="hidden" name="GameID" value="@Model.GameID" />
+                        <form method="post" enctype="multipart/form-data" asp-action="EditGame" asp-route-id="@Model.GameID">
+                            <input type="hidden" name="GameID" value="@Model.GameID" />
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="Title" class="form-label">Oyun Başlığı *</label>
-                                    <input type="text" class="form-control" id="Title" name="Title" 
-                                           value="@Model.Title" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="Price" class="form-label">Fiyat (₺) *</label>
-                                    <input type="number" class="form-control" id="Price" name="Price" 
-                                           step="0.01" min="0" value="@Model.Price" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="DeveloperID" class="form-label">Developer *</label>
-                                    <select class="form-select" id="DeveloperID" name="DeveloperID" required>
-                                        <option value="">Developer Seçin</option>
-                                        @foreach (var developer in ViewBag.Developers)
-                                        {
-                                            <option value="@developer.DeveloperID" selected="@(developer.DeveloperID == Model.DeveloperID)">
-                                                @developer.StudioName
-                                            </option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="coverImage" class="form-label">Yeni Oyun Görseli</label>
-                                    <input type="file" class="form-control" id="coverImage" name="coverImage" 
-                                           accept="image/*" onchange="previewImage(this)">
-                                    <small class="form-text text-muted">
-                                        Yeni görsel seçmezseniz mevcut görsel korunacaktır
-                                    </small>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="Description" class="form-label">Oyun Açıklaması *</label>
-                                    <textarea class="form-control" id="Description" name="Description" 
-                                              rows="8" required>@Model.Description</textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Mevcut/Yeni Görsel</label>
-                                    <div class="image-preview">
-                                        <img id="imagePreview" 
-                                             src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/indir.jpeg" : "/images/" + Model.CoverImage)" 
-                                             alt="Oyun Görseli" class="img-fluid rounded">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="Title" class="form-label">Oyun Başlığı *</label>
+                                        <input type="text" class="form-control" id="Title" name="Title" 
+                                               value="@Model.Title" required>
                                     </div>
-                                    @if (!string.IsNullOrEmpty(Model.CoverImage))
-                                    {
-                                        <small class="text-muted d-block mt-2">
-                                            Mevcut görsel: @Model.CoverImage
+
+                                    <div class="mb-3">
+                                        <label for="Price" class="form-label">Fiyat (₺) *</label>
+                                        <input type="number" class="form-control" id="Price" name="Price" 
+                                               step="0.01" min="0" value="@Model.Price" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="DeveloperID" class="form-label">Developer *</label>
+                                        <select class="form-select" id="DeveloperID" name="DeveloperID" required>
+                                            <option value="">Developer Seçin</option>
+                                            @foreach (var developer in ViewBag.Developers)
+                                            {
+                                                <option value="@developer.DeveloperID" selected="@(developer.DeveloperID == Model.DeveloperID)">
+                                                    @developer.StudioName
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="coverImage" class="form-label">Yeni Oyun Görseli</label>
+                                        <input type="file" class="form-control" id="coverImage" name="coverImage" 
+                                               accept="image/*" onchange="previewImage(this)">
+                                        <small class="form-text text-muted">
+                                            Yeni görsel seçmezseniz mevcut görsel korunacaktır
                                         </small>
-                                    }
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <hr>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="Description" class="form-label">Oyun Açıklaması *</label>
+                                        <textarea class="form-control" id="Description" name="Description" 
+                                                  rows="8" required>@Model.Description</textarea>
+                                    </div>
 
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="info-card">
-                                    <h6><i class="fas fa-info-circle me-2"></i>Oyun Bilgileri</h6>
-                                    <p><strong>ID:</strong> @Model.GameID</p>
-                                    <p><strong>Oluşturulma:</strong> Mevcut kayıt</p>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <a href="@Url.Action("Games", "Admin")" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-2"></i>Geri Dön
-                                    </a>
-                                    <div>
-                                        <button type="button" class="btn btn-outline-danger me-2" 
-                                                onclick="confirmDelete(@Model.GameID, '@Model.Title')">
-                                            <i class="fas fa-trash me-2"></i>Sil
-                                        </button>
-                                        <button type="submit" class="btn btn-warning">
-                                            <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-                                        </button>
+                                    <div class="mb-3">
+                                        <label class="form-label">Mevcut/Yeni Görsel</label>
+                                        <div class="image-preview">
+                                            <img id="imagePreview" 
+                                                 src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/indir.jpeg" : "/images/" + Model.CoverImage)" 
+                                                 alt="Oyun Görseli" class="img-fluid rounded">
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(Model.CoverImage))
+                                        {
+                                            <small class="text-muted d-block mt-2">
+                                                Mevcut görsel: @Model.CoverImage
+                                            </small>
+                                        }
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+
+                            <hr>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="info-card">
+                                        <h6><i class="fas fa-info-circle me-2"></i>Oyun Bilgileri</h6>
+                                        <p><strong>ID:</strong> @Model.GameID</p>
+                                        <p><strong>Oluşturulma:</strong> Mevcut kayıt</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="@Url.Action("Games", "Admin")" class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                                        </a>
+                                        <div>
+                                            <button type="button" class="btn btn-outline-danger me-2" 
+                                                    onclick="confirmDelete(@Model.GameID, '@Model.Title')">
+                                                <i class="fas fa-trash me-2"></i>Sil
+                                            </button>
+                                            <button type="submit" class="btn btn-warning">
+                                                <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

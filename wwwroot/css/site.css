@@ -27,6 +27,16 @@ body {
     background-attachment: fixed;
     color: var(--text-primary);
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* Fix for main content layout */
+main {
+    margin-top: 80px !important;
+    padding-bottom: 80px !important; /* Reduced padding to prevent overlap */
+    min-height: calc(100vh - 160px); /* Ensure content area has proper height */
 }
 
 /* Navbar Styling */
@@ -36,6 +46,7 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
+    z-index: 1030; /* Ensure navbar stays on top */
 }
 
 .navbar-brand {
@@ -80,12 +91,11 @@ body {
         color: white;
     }
 
-/* Hero Section */
+/* Hero Section - Fixed spacing issues */
 .hero-section {
     background: var(--gradient-primary);
-    padding: 4rem 0;
-    margin: -80px 0 0 0;
-    padding-top: 120px;
+    padding: 2rem 0 3rem 0; /* Reduced top padding, increased bottom */
+    margin: 0; /* Removed negative margin */
     position: relative;
     overflow: hidden;
 }
@@ -105,6 +115,15 @@ body {
     .hero-section .container {
         position: relative;
         z-index: 2;
+    }
+
+    /* Reduce spacing under hero titles */
+    .hero-section h1 {
+        margin-bottom: 1rem !important;
+    }
+
+    .hero-section p {
+        margin-bottom: 1.5rem !important;
     }
 
 .search-box {
@@ -130,6 +149,21 @@ body {
             background: white;
         }
 
+/* Container adjustments for better spacing */
+.container-fluid {
+    padding-bottom: 2rem; /* Add some breathing room */
+}
+
+/* Content sections spacing */
+.py-5 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
 /* Game Cards */
 .game-card-inner {
     border: none;
@@ -139,6 +173,7 @@ body {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem; /* Add consistent bottom margin */
 }
 
     .game-card-inner:hover {
@@ -368,11 +403,11 @@ body {
     margin-bottom: 0.5rem;
 }
 
-/* Footer */
+/* Footer - Fixed to not block content */
 .footer {
     background: rgba(45, 52, 54, 0.95);
     color: rgba(255, 255, 255, 0.8);
-    padding: 2rem 0;
+    padding: 1.5rem 0; /* Reduced padding */
     margin-top: auto;
     position: fixed;
     bottom: 0;
@@ -391,15 +426,41 @@ body {
             color: white;
         }
 
+/* Empty state improvements */
+.text-center.py-5 {
+    padding: 3rem 0 !important;
+    margin: 2rem 0;
+}
+
+/* Content spacing improvements */
+.reviews-section, .games-section {
+    margin-bottom: 3rem;
+}
+
+/* Card spacing in grids */
+.row .col-lg-3,
+.row .col-md-4,
+.row .col-sm-6 {
+    margin-bottom: 2rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+    main {
+        margin-top: 70px !important;
+        padding-bottom: 60px !important;
+    }
+
     .hero-section {
-        padding: 2rem 0;
-        padding-top: 100px;
+        padding: 1.5rem 0 2rem 0;
     }
 
     .display-3 {
         font-size: 2.5rem;
+    }
+
+    .display-4 {
+        font-size: 2rem;
     }
 
     .overlay-buttons {
@@ -414,6 +475,10 @@ body {
     .card-img-top-container {
         height: 200px;
     }
+
+    .footer {
+        padding: 1rem 0;
+    }
 }
 
 @media (max-width: 576px) {
@@ -426,7 +491,36 @@ body {
         font-size: 2rem;
     }
 
+    .hero-section .display-4 {
+        font-size: 1.8rem;
+    }
+
     .search-box input {
         padding: 0.75rem 1.5rem;
     }
+
+    main {
+        margin-top: 65px !important;
+        padding-bottom: 50px !important;
+    }
+}
+
+/* Additional spacing fixes */
+.game-header {
+    margin-bottom: 2rem;
+}
+
+.reviews-section .container {
+    max-width: 1200px;
+}
+
+/* Notification positioning */
+.notification {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 300px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }

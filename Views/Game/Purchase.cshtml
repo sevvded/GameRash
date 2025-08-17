@@ -4,129 +4,131 @@
 }
 
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="purchase-card">
-                <div class="text-center mb-4">
-                    <h2 class="purchase-title">🛒 Satın Alma</h2>
-                    <p class="text-muted">Ödeme bilgilerinizi girin</p>
-                </div>
-
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="alert alert-danger" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        @TempData["ErrorMessage"]
+	<div class="content-wrapper">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="purchase-card">
+                    <div class="text-center mb-4">
+                        <h2 class="purchase-title">🛒 Satın Alma</h2>
+                        <p class="text-muted">Ödeme bilgilerinizi girin</p>
                     </div>
-                }
 
-                <!-- Game Summary -->
-                <div class="game-summary mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <img src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/indir.jpeg" : "/images/" + Model.CoverImage)"
-                                         class="img-fluid rounded" alt="@Model.Title"
-                                         onerror="this.src='/images/indir.jpeg'"
-                                         style="max-height: 150px; object-fit: cover;">
-                                </div>
-                                <div class="col-md-6">
-                                    <h5 class="mb-2">@Model.Title</h5>
-                                    <p class="text-muted mb-0">@(Model.Developer?.StudioName ?? "Unknown Developer")</p>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    <h4 class="price text-success mb-0">₺@Model.Price.ToString("F2")</h4>
-                                </div>
-                            </div>
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @TempData["ErrorMessage"]
                         </div>
-                    </div>
-                </div>
+                    }
 
-                <!-- Payment Form -->
-                <form id="purchaseForm">
-                    <div class="payment-methods mb-4">
-                        <h5 class="mb-3">Ödeme Yöntemi</h5>
-                        <div class="row justify-content-center">
-                            <div class="col-md-6 mb-3">
-                                <div class="payment-option">
-                                    <input type="radio" id="creditCard" name="paymentMethod" value="Credit Card" class="form-check-input" required>
-                                    <label for="creditCard" class="payment-label">
-                                        <div class="payment-content">
-                                            <i class="fas fa-credit-card fa-2x mb-2"></i>
-                                            <div>Kredi Kartı</div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="payment-option">
-                                    <input type="radio" id="wallet" name="paymentMethod" value="Digital Wallet" class="form-check-input" required>
-                                    <label for="wallet" class="payment-label">
-                                        <div class="payment-content">
-                                            <i class="fas fa-wallet fa-2x mb-2"></i>
-                                            <div>Dijital Cüzdan</div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Credit Card Details (shown when credit card is selected) -->
-                    <div id="cardDetails" class="card-details mb-4" style="display: none;">
-                        <h5 class="mb-3">Kart Bilgileri</h5>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="cardNumber" class="form-label">Kart Numarası</label>
-                                <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="expiryDate" class="form-label">Son Kullanma Tarihi</label>
-                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="cvv" class="form-label">CVV</label>
-                                <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="3">
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label for="cardName" class="form-label">Kart Üzerindeki İsim</label>
-                                <input type="text" class="form-control" id="cardName" placeholder="John Doe">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Summary -->
-                    <div class="order-summary mb-4">
-                        <div class="card bg-light">
+                    <!-- Game Summary -->
+                    <div class="game-summary mb-4">
+                        <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Sipariş Özeti</h5>
-                                <div class="d-flex justify-content-between">
-                                    <span>@Model.Title</span>
-                                    <span>₺@Model.Price.ToString("F2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>KDV (%18)</span>
-                                    <span>₺@((Model.Price * 0.18m).ToString("F2"))</span>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between fw-bold">
-                                    <span>Toplam</span>
-                                    <span>₺@((Model.Price * 1.18m).ToString("F2"))</span>
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <img src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/indir.jpeg" : "/images/" + Model.CoverImage)"
+                                             class="img-fluid rounded" alt="@Model.Title"
+                                             onerror="this.src='/images/indir.jpeg'"
+                                             style="max-height: 150px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="mb-2">@Model.Title</h5>
+                                        <p class="text-muted mb-0">@(Model.Developer?.StudioName ?? "Unknown Developer")</p>
+                                    </div>
+                                    <div class="col-md-3 text-end">
+                                        <h4 class="price text-success mb-0">₺@Model.Price.ToString("F2")</h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg" id="purchaseBtn">
-                            <i class="fas fa-lock me-2"></i>Güvenli Ödeme Yap
-                        </button>
-                        <a href="@Url.Action("Details", "Game", new { id = Model.GameID })" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
-                        </a>
-                    </div>
-                </form>
+                    <!-- Payment Form -->
+                    <form id="purchaseForm">
+                        <div class="payment-methods mb-4">
+                            <h5 class="mb-3">Ödeme Yöntemi</h5>
+                            <div class="row justify-content-center">
+                                <div class="col-md-6 mb-3">
+                                    <div class="payment-option">
+                                        <input type="radio" id="creditCard" name="paymentMethod" value="Credit Card" class="form-check-input" required>
+                                        <label for="creditCard" class="payment-label">
+                                            <div class="payment-content">
+                                                <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                                <div>Kredi Kartı</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="payment-option">
+                                        <input type="radio" id="wallet" name="paymentMethod" value="Digital Wallet" class="form-check-input" required>
+                                        <label for="wallet" class="payment-label">
+                                            <div class="payment-content">
+                                                <i class="fas fa-wallet fa-2x mb-2"></i>
+                                                <div>Dijital Cüzdan</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Credit Card Details (shown when credit card is selected) -->
+                        <div id="cardDetails" class="card-details mb-4" style="display: none;">
+                            <h5 class="mb-3">Kart Bilgileri</h5>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="cardNumber" class="form-label">Kart Numarası</label>
+                                    <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="expiryDate" class="form-label">Son Kullanma Tarihi</label>
+                                    <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="3">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label for="cardName" class="form-label">Kart Üzerindeki İsim</label>
+                                    <input type="text" class="form-control" id="cardName" placeholder="John Doe">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="order-summary mb-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Sipariş Özeti</h5>
+                                    <div class="d-flex justify-content-between">
+                                        <span>@Model.Title</span>
+                                        <span>₺@Model.Price.ToString("F2")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>KDV (%18)</span>
+                                        <span>₺@((Model.Price * 0.18m).ToString("F2"))</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Toplam</span>
+                                        <span>₺@((Model.Price * 1.18m).ToString("F2"))</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="purchaseBtn">
+                                <i class="fas fa-lock me-2"></i>Güvenli Ödeme Yap
+                            </button>
+                            <a href="@Url.Action("Details", "Game", new { id = Model.GameID })" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

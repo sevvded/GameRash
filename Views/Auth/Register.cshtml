@@ -3,124 +3,126 @@
 }
 
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="auth-card">
-                <div class="text-center mb-4">
-                    <h2 class="auth-title">🎮 GameRash</h2>
-                    <p class="auth-subtitle">Yeni hesap oluşturun</p>
-                </div>
-
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="alert alert-danger" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        @TempData["ErrorMessage"]
+    <div class="content-wrapper">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <div class="text-center mb-4">
+                        <h2 class="auth-title">🎮 GameRash</h2>
+                        <p class="auth-subtitle">Yeni hesap oluşturun</p>
                     </div>
-                }
 
-                <form method="post" asp-action="Register">
-                    <!-- User Type Selection -->
-                    <div class="mb-3">
-                        <label class="form-label">Hesap Tipi</label>
-                        <div class="row">
-                            <div class="col-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="userType" id="userTypeUser" value="user" checked onchange="toggleUserTypeFields()">
-                                    <label class="form-check-label" for="userTypeUser">
-                                        <i class="fas fa-user me-1"></i>Kullanıcı
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="userType" id="userTypeAdmin" value="admin" onchange="toggleUserTypeFields()">
-                                    <label class="form-check-label" for="userTypeAdmin">
-                                        <i class="fas fa-crown me-1"></i>Admin
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="userType" id="userTypeDeveloper" value="developer" onchange="toggleUserTypeFields()">
-                                    <label class="form-check-label" for="userTypeDeveloper">
-                                        <i class="fas fa-code me-1"></i>Developer
-                                    </label>
-                                </div>
-                            </div>
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @TempData["ErrorMessage"]
                         </div>
-                    </div>
+                    }
 
-                    <!-- Basic User Info -->
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Kullanıcı Adı</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input type="text" class="form-control" id="username" name="username" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label">E-posta</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-envelope"></i>
-                            </span>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Şifre</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <small class="form-text text-muted">En az 6 karakter olmalıdır</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Şifre Tekrar</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
-                        </div>
-                    </div>
-
-                    <!-- Developer-specific fields -->
-                    <div id="developerFields" style="display: none;">
+                    <form method="post" asp-action="Register">
+                        <!-- User Type Selection -->
                         <div class="mb-3">
-                            <label for="studioName" class="form-label">Stüdyo Adı</label>
+                            <label class="form-label">Hesap Tipi</label>
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="userType" id="userTypeUser" value="user" checked onchange="toggleUserTypeFields()">
+                                        <label class="form-check-label" for="userTypeUser">
+                                            <i class="fas fa-user me-1"></i>Kullanıcı
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="userType" id="userTypeAdmin" value="admin" onchange="toggleUserTypeFields()">
+                                        <label class="form-check-label" for="userTypeAdmin">
+                                            <i class="fas fa-crown me-1"></i>Admin
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="userType" id="userTypeDeveloper" value="developer" onchange="toggleUserTypeFields()">
+                                        <label class="form-check-label" for="userTypeDeveloper">
+                                            <i class="fas fa-code me-1"></i>Developer
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic User Info -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Kullanıcı Adı</label>
                             <div class="input-group">
                                 <span class="input-group-text">
-                                    <i class="fas fa-building"></i>
+                                    <i class="fas fa-user"></i>
                                 </span>
-                                <input type="text" class="form-control" id="studioName" name="studioName">
+                                <input type="text" class="form-control" id="username" name="username" required>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="bio" class="form-label">Stüdyo Açıklaması</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Stüdyonuz hakkında kısa bilgi..."></textarea>
+                            <label for="email" class="form-label">E-posta</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Şifre</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <small class="form-text text-muted">En az 6 karakter olmalıdır</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Şifre Tekrar</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                        </div>
+
+                        <!-- Developer-specific fields -->
+                        <div id="developerFields" style="display: none;">
+                            <div class="mb-3">
+                                <label for="studioName" class="form-label">Stüdyo Adı</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="studioName" name="studioName">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="bio" class="form-label">Stüdyo Açıklaması</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Stüdyonuz hakkında kısa bilgi..."></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Kayıt Ol
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-0">
+                            Zaten hesabınız var mı?
+                            <a href="@Url.Action("Login", "Auth")" class="text-decoration-none">Giriş Yap</a>
+                        </p>
                     </div>
-
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-user-plus me-2"></i>Kayıt Ol
-                    </button>
-                </form>
-
-                <div class="text-center">
-                    <p class="mb-0">
-                        Zaten hesabınız var mı?
-                        <a href="@Url.Action("Login", "Auth")" class="text-decoration-none">Giriş Yap</a>
-                    </p>
                 </div>
             </div>
         </div>
