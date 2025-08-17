@@ -1,0 +1,349 @@
+﻿@model GameRash.Models.Game
+@{
+    ViewData["Title"] = Model.Title + " - GameRash";
+}
+
+<div class="container-fluid">
+    <!-- Game Header Section -->
+    <div class="game-header py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/indir.jpeg" : "/images/" + Model.CoverImage)"
+                         class="img-fluid rounded game-cover" alt="@Model.Title"
+                         onerror="this.src='/images/indir.jpeg'">
+                </div>
+                <div class="col-md-8">
+                    <h1 class="game-title">@Model.Title</h1>
+                    <p class="developer-name">@(Model.Developer?.StudioName ?? "Unknown Developer")</p>
+
+                    <div class="rating-section mb-3">
+                        <div class="average-rating">
+                            @{
+                                var averageRating = Model.GameReviews.Any() ? Model.GameReviews.Average(r => r.Rating) : 0;
+                            }
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= averageRating)
+                                {
+                                    <i class="fas fa-star text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-warning"></i>
+                                }
+                            }
+                            <span class="ms-2">@averageRating.ToString("F1") (@Model.GameReviews.Count değerlendirme)</span>
+                        </div>
+                    </div>
+
+                    <p class="game-description">@Model.Description</p>
+
+                    <div class="price-section mb-4">
+                        <span class="price">₺@Model.Price.ToString("F2")</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        @if (ViewBag.UserOwnsGame == true)
+                        {
+                            <button class="btn btn-success btn-lg me-2" disabled>
+                                <i class="fas fa-check me-2"></i>Kütüphanenizde
+                            </button>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Purchase", "Game", new { id = Model.GameID })" class="btn btn-primary btn-lg me-2">
+                                <i class="fas fa-shopping-cart me-2"></i>Satın Al
+                            </a>
+                        }
+
+                        <button class="btn btn-outline-secondary btn-lg" onclick="addToWishlist(@Model.GameID)">
+                            <i class="fas fa-heart me-2"></i>İstek Listesi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mb-4">Kullanıcı Değerlendirmeleri</h3>
+
+                    <!-- Add Review Form (only if user owns the game and hasn't reviewed) -->
+                    @if (ViewBag.UserId != null && ViewBag.UserOwnsGame == true && ViewBag.UserHasReviewed == false)
+                    {
+                        <div class="add-review-section mb-5">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Bu oyunu değerlendirin</h5>
+                                    <form id="reviewForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Puanınız:</label>
+                                            <div class="star-rating">
+                                                <input type="radio" id="star5" name="rating" value="5">
+                                                <label for="star5"><i class="fas fa-star"></i></label>
+                                                <input type="radio" id="star4" name="rating" value="4">
+                                                <label for="star4"><i class="fas fa-star"></i></label>
+                                                <input type="radio" id="star3" name="rating" value="3">
+                                                <label for="star3"><i class="fas fa-star"></i></label>
+                                                <input type="radio" id="star2" name="rating" value="2">
+                                                <label for="star2"><i class="fas fa-star"></i></label>
+                                                <input type="radio" id="star1" name="rating" value="1">
+                                                <label for="star1"><i class="fas fa-star"></i></label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane me-2"></i>Değerlendirmeyi Gönder
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (ViewBag.UserId != null && ViewBag.UserHasReviewed == true)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Bu oyunu zaten değerlendirdiniz.
+                        </div>
+                    }
+                    else if (ViewBag.UserId != null && ViewBag.UserOwnsGame == false)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Değerlendirme yapmak için önce oyunu satın almanız gerekiyor.
+                        </div>
+                    }
+                    else if (ViewBag.UserId == null)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Değerlendirme yapmak için <a href="@Url.Action("Login", "Auth")">giriş yapın</a>.
+                        </div>
+                    }
+
+                    <!-- Display Reviews -->
+                    <div class="reviews-list">
+                        @if (Model.GameReviews.Any())
+                        {
+                            @foreach (var review in Model.GameReviews.OrderByDescending(r => r.ReviewID))
+                            {
+                                <div class="review-item mb-4">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <h6 class="reviewer-name">@(review.User?.Username ?? "Anonim")</h6>
+                                                    <div class="review-rating">
+                                                        @for (int i = 1; i <= 5; i++)
+                                                        {
+                                                            if (i <= review.Rating)
+                                                            {
+                                                                <i class="fas fa-star text-warning"></i>
+                                                            }
+                                                            else
+                                                            {
+                                                                <i class="far fa-star text-warning"></i>
+                                                            }
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Henüz hiç değerlendirme yapılmamış.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Star rating functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const starLabels = document.querySelectorAll('.star-rating label');
+            const starInputs = document.querySelectorAll('.star-rating input');
+
+            starLabels.forEach((label, index) => {
+                label.addEventListener('mouseenter', function() {
+                    highlightStars(5 - index);
+                });
+
+                label.addEventListener('click', function() {
+                    const rating = this.previousElementSibling.value;
+                    selectStars(rating);
+                });
+            });
+
+            document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+                const selectedStar = document.querySelector('.star-rating input:checked');
+                if (selectedStar) {
+                    selectStars(selectedStar.value);
+                } else {
+                    clearStars();
+                }
+            });
+        });
+
+        function highlightStars(rating) {
+            const starLabels = document.querySelectorAll('.star-rating label');
+            starLabels.forEach((label, index) => {
+                if (5 - index <= rating) {
+                    label.classList.add('hover');
+                } else {
+                    label.classList.remove('hover');
+                }
+            });
+        }
+
+        function selectStars(rating) {
+            const starLabels = document.querySelectorAll('.star-rating label');
+            starLabels.forEach((label, index) => {
+                if (5 - index <= rating) {
+                    label.classList.add('selected');
+                } else {
+                    label.classList.remove('selected');
+                }
+            });
+        }
+
+        function clearStars() {
+            const starLabels = document.querySelectorAll('.star-rating label');
+            starLabels.forEach(label => {
+                label.classList.remove('hover', 'selected');
+            });
+        }
+
+        // Submit review
+        document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const rating = document.querySelector('input[name="rating"]:checked');
+            if (!rating) {
+                alert('Lütfen bir puan seçin');
+                return;
+            }
+
+            fetch('@Url.Action("AddReview", "Game")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `gameId=@Model.GameID&rating=${rating.value}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu');
+            });
+        });
+
+        function addToWishlist(gameId) {
+            fetch('/Wishlist/AddToWishlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ GameId: gameId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Oyun istek listesine eklendi!');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu');
+            });
+        }
+    </script>
+}
+
+<style>
+    .game-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+    }
+
+    .game-cover {
+        max-height: 400px;
+        object-fit: cover;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .game-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .developer-name {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 1rem;
+    }
+
+    .price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: block;
+            color: #ddd;
+            font-size: 20px;
+            transition: color 0.2s;
+        }
+
+            .star-rating label:hover,
+            .star-rating label.hover,
+            .star-rating input:checked ~ label,
+            .star-rating label.selected {
+                color: #ffc107;
+            }
+
+    .review-item .card {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .reviewer-name {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+</style>

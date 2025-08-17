@@ -1,0 +1,373 @@
+﻿@model GameRash.Models.Game
+@{
+    ViewData["Title"] = "Satın Al: " + Model.Title + " - GameRash";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="purchase-card">
+                <div class="text-center mb-4">
+                    <h2 class="purchase-title">🛒 Satın Alma</h2>
+                    <p class="text-muted">Ödeme bilgilerinizi girin</p>
+                </div>
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+
+                <!-- Game Summary -->
+                <div class="game-summary mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <img src="@(string.IsNullOrEmpty(Model.CoverImage) ? "/images/indir.jpeg" : "/images/" + Model.CoverImage)"
+                                         class="img-fluid rounded" alt="@Model.Title"
+                                         onerror="this.src='/images/indir.jpeg'"
+                                         style="max-height: 150px; object-fit: cover;">
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="mb-2">@Model.Title</h5>
+                                    <p class="text-muted mb-0">@(Model.Developer?.StudioName ?? "Unknown Developer")</p>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <h4 class="price text-success mb-0">₺@Model.Price.ToString("F2")</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <form id="purchaseForm">
+                    <div class="payment-methods mb-4">
+                        <h5 class="mb-3">Ödeme Yöntemi</h5>
+                        <div class="row justify-content-center">
+                            <div class="col-md-6 mb-3">
+                                <div class="payment-option">
+                                    <input type="radio" id="creditCard" name="paymentMethod" value="Credit Card" class="form-check-input" required>
+                                    <label for="creditCard" class="payment-label">
+                                        <div class="payment-content">
+                                            <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                            <div>Kredi Kartı</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="payment-option">
+                                    <input type="radio" id="wallet" name="paymentMethod" value="Digital Wallet" class="form-check-input" required>
+                                    <label for="wallet" class="payment-label">
+                                        <div class="payment-content">
+                                            <i class="fas fa-wallet fa-2x mb-2"></i>
+                                            <div>Dijital Cüzdan</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Credit Card Details (shown when credit card is selected) -->
+                    <div id="cardDetails" class="card-details mb-4" style="display: none;">
+                        <h5 class="mb-3">Kart Bilgileri</h5>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="cardNumber" class="form-label">Kart Numarası</label>
+                                <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expiryDate" class="form-label">Son Kullanma Tarihi</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="3">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label for="cardName" class="form-label">Kart Üzerindeki İsim</label>
+                                <input type="text" class="form-control" id="cardName" placeholder="John Doe">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="order-summary mb-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Sipariş Özeti</h5>
+                                <div class="d-flex justify-content-between">
+                                    <span>@Model.Title</span>
+                                    <span>₺@Model.Price.ToString("F2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>KDV (%18)</span>
+                                    <span>₺@((Model.Price * 0.18m).ToString("F2"))</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Toplam</span>
+                                    <span>₺@((Model.Price * 1.18m).ToString("F2"))</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="purchaseBtn">
+                            <i class="fas fa-lock me-2"></i>Güvenli Ödeme Yap
+                        </button>
+                        <a href="@Url.Action("Details", "Game", new { id = Model.GameID })" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Modal -->
+<div class="modal fade" id="processingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Ödemeniz işleniyor...</h5>
+                <p class="text-muted">Lütfen bekleyin, bu birkaç saniye sürebilir.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Payment method selection
+            const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
+            const cardDetails = document.getElementById('cardDetails');
+
+            paymentMethods.forEach(method => {
+                method.addEventListener('change', function() {
+                    if (this.value === 'Credit Card') {
+                        cardDetails.style.display = 'block';
+                    } else {
+                        cardDetails.style.display = 'none';
+                    }
+                });
+            });
+
+            // Card number formatting
+            const cardNumber = document.getElementById('cardNumber');
+            if (cardNumber) {
+                cardNumber.addEventListener('input', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+                    this.value = value;
+                });
+            }
+
+            // Expiry date formatting
+            const expiryDate = document.getElementById('expiryDate');
+            if (expiryDate) {
+                expiryDate.addEventListener('input', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    this.value = value;
+                });
+            }
+
+            // CVV validation
+            const cvv = document.getElementById('cvv');
+            if (cvv) {
+                cvv.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '');
+                });
+            }
+        });
+
+        // Purchase form submission
+        document.getElementById('purchaseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!selectedPayment) {
+                alert('Lütfen bir ödeme yöntemi seçin');
+                return;
+            }
+
+            // Validate credit card fields if credit card is selected
+            if (selectedPayment.value === 'Credit Card') {
+                const cardNumber = document.getElementById('cardNumber').value;
+                const expiryDate = document.getElementById('expiryDate').value;
+                const cvv = document.getElementById('cvv').value;
+                const cardName = document.getElementById('cardName').value;
+
+                if (!cardNumber || !expiryDate || !cvv || !cardName) {
+                    alert('Lütfen tüm kart bilgilerini doldurun');
+                    return;
+                }
+
+                if (cardNumber.replace(/\s/g, '').length !== 16) {
+                    alert('Geçerli bir kart numarası girin');
+                    return;
+                }
+
+                if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
+                    alert('Geçerli bir son kullanma tarihi girin (MM/YY)');
+                    return;
+                }
+
+                if (cvv.length !== 3) {
+                    alert('Geçerli bir CVV girin');
+                    return;
+                }
+            }
+
+            // Show processing modal
+            const processingModal = new bootstrap.Modal(document.getElementById('processingModal'));
+            processingModal.show();
+
+            // Submit purchase
+            fetch('@Url.Action("CompletePurchase", "Game")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `gameId=@Model.GameID&paymentMethod=${selectedPayment.value}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                processingModal.hide();
+
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '@Url.Action("Index", "Library")';
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                processingModal.hide();
+                console.error('Error:', error);
+                alert('Ödeme işlemi sırasında bir hata oluştu');
+            });
+        });
+    </script>
+}
+
+<style>
+    .purchase-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        margin-top: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .purchase-title {
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 2rem;
+    }
+
+    .payment-option {
+        position: relative;
+    }
+
+        .payment-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+    .payment-label {
+        display: block;
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .payment-label:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.2);
+        }
+
+    .payment-option input[type="radio"]:checked + .payment-label {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+    }
+
+    .payment-content {
+        text-align: center;
+    }
+
+    .card-details {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 15px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+    .btn-outline-secondary {
+        border-radius: 25px;
+        padding: 15px;
+        font-weight: 600;
+    }
+
+    .price {
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    .order-summary .card {
+        border: none;
+        border-radius: 15px;
+    }
+</style>

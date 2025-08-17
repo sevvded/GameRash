@@ -38,9 +38,22 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthorization();
 
+app.MapGet("/", () => Results.Redirect("/Home"));
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
+
+app.MapControllerRoute(
+    name: "gamedetails",
+    pattern: "game/{id:int}",
+    defaults: new { controller = "Game", action = "Details" });
+
+app.MapControllerRoute(
+    name: "gamePurchase",
+    pattern: "Game/Purchase/{id:int}",
+    defaults: new { controller = "Game", action = "Purchase" });
+
 
 app.Run();

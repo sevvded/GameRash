@@ -4,7 +4,7 @@
 
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-5">
             <div class="auth-card">
                 <div class="text-center mb-4">
                     <h2 class="auth-title">🎮 GameRash</h2>
@@ -20,6 +20,38 @@
                 }
 
                 <form method="post" asp-action="Register">
+                    <!-- User Type Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Hesap Tipi</label>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="userType" id="userTypeUser" value="user" checked onchange="toggleUserTypeFields()">
+                                    <label class="form-check-label" for="userTypeUser">
+                                        <i class="fas fa-user me-1"></i>Kullanıcı
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="userType" id="userTypeAdmin" value="admin" onchange="toggleUserTypeFields()">
+                                    <label class="form-check-label" for="userTypeAdmin">
+                                        <i class="fas fa-crown me-1"></i>Admin
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="userType" id="userTypeDeveloper" value="developer" onchange="toggleUserTypeFields()">
+                                    <label class="form-check-label" for="userTypeDeveloper">
+                                        <i class="fas fa-code me-1"></i>Developer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic User Info -->
                     <div class="mb-3">
                         <label for="username" class="form-label">Kullanıcı Adı</label>
                         <div class="input-group">
@@ -51,7 +83,7 @@
                         <small class="form-text text-muted">En az 6 karakter olmalıdır</small>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="confirmPassword" class="form-label">Şifre Tekrar</label>
                         <div class="input-group">
                             <span class="input-group-text">
@@ -61,13 +93,32 @@
                         </div>
                     </div>
 
+                    <!-- Developer-specific fields -->
+                    <div id="developerFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="studioName" class="form-label">Stüdyo Adı</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-building"></i>
+                                </span>
+                                <input type="text" class="form-control" id="studioName" name="studioName">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Stüdyo Açıklaması</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Stüdyonuz hakkında kısa bilgi..."></textarea>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100 mb-3">
                         <i class="fas fa-user-plus me-2"></i>Kayıt Ol
                     </button>
                 </form>
 
                 <div class="text-center">
-                    <p class="mb-0">Zaten hesabınız var mı? 
+                    <p class="mb-0">
+                        Zaten hesabınız var mı?
                         <a href="@Url.Action("Login", "Auth")" class="text-decoration-none">Giriş Yap</a>
                     </p>
                 </div>
@@ -76,67 +127,96 @@
     </div>
 </div>
 
+<script>
+    function toggleUserTypeFields() {
+        const developerFields = document.getElementById('developerFields');
+        const isDeveloper = document.getElementById('userTypeDeveloper').checked;
+
+        if (isDeveloper) {
+            developerFields.style.display = 'block';
+            document.getElementById('studioName').required = true;
+        } else {
+            developerFields.style.display = 'none';
+            document.getElementById('studioName').required = false;
+        }
+    }
+</script>
+
 <style>
-.auth-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    margin-top: 2rem;
-    backdrop-filter: blur(10px);
-}
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        margin-top: 2rem;
+        backdrop-filter: blur(10px);
+    }
 
-.auth-title {
-    color: var(--primary-color);
-    font-weight: 700;
-    font-size: 2rem;
-}
+    .auth-title {
+        color: #6c5ce7;
+        font-weight: 700;
+        font-size: 2rem;
+    }
 
-.auth-subtitle {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-}
+    .auth-subtitle {
+        color: #636e72;
+        font-size: 1.1rem;
+    }
 
-.input-group-text {
-    background: var(--primary-color);
-    border: none;
-    color: white;
-}
+    .input-group-text {
+        background: #6c5ce7;
+        border: none;
+        color: white;
+    }
 
-.form-control {
-    border-radius: 0 10px 10px 0;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-}
+    .form-control {
+        border-radius: 0 10px 10px 0;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
 
-.form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
-}
+        .form-control:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
+        }
 
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    border: none;
-    border-radius: 25px;
-    padding: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-}
+    .btn-primary {
+        background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
-}
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
 
-.alert {
-    border-radius: 15px;
-    border: none;
-}
+    .form-check-input:checked {
+        background-color: #6c5ce7;
+        border-color: #6c5ce7;
+    }
 
-.form-text {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
+    .form-check-label {
+        font-weight: 500;
+    }
+
+    .alert {
+        border-radius: 15px;
+        border: none;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #636e72;
+    }
+
+    textarea.form-control {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+    }
 </style>

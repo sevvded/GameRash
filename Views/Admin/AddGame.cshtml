@@ -1,0 +1,182 @@
+﻿@model GameRash.Models.Game
+@{
+    ViewData["Title"] = "Yeni Oyun Ekle - Admin Panel";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus me-2"></i>Yeni Oyun Ekle</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <form method="post" enctype="multipart/form-data" asp-action="AddGame">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Title" class="form-label">Oyun Başlığı *</label>
+                                    <input type="text" class="form-control" id="Title" name="Title" required
+                                           placeholder="Örn: The Witcher 3">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="Price" class="form-label">Fiyat (₺) *</label>
+                                    <input type="number" class="form-control" id="Price" name="Price"
+                                           step="0.01" min="0" required placeholder="59.99">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="DeveloperID" class="form-label">Developer *</label>
+                                    <select class="form-select" id="DeveloperID" name="DeveloperID" required>
+                                        <option value="">Developer Seçin</option>
+                                        @foreach (var developer in ViewBag.Developers)
+                                        {
+                                            <option value="@developer.DeveloperID">@developer.StudioName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="coverImage" class="form-label">Oyun Görseli</label>
+                                    <input type="file" class="form-control" id="coverImage" name="coverImage"
+                                           accept="image/*" onchange="previewImage(this)">
+                                    <small class="form-text text-muted">JPG, PNG formatları desteklenir</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Description" class="form-label">Oyun Açıklaması *</label>
+                                    <textarea class="form-control" id="Description" name="Description"
+                                              rows="8" required placeholder="Oyun hakkında detaylı bilgi..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Görsel Önizleme</label>
+                                    <div class="image-preview">
+                                        <img id="imagePreview" src="/images/indir.jpeg"
+                                             alt="Görsel Önizleme" class="img-fluid rounded">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Games", "Admin")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Oyunu Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        margin-top: 2rem;
+    }
+
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        border-bottom: none;
+        padding: 1.5rem;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+    .image-preview {
+        border: 2px dashed #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        background-color: #f8f9fa;
+    }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 250px;
+            object-fit: cover;
+        }
+
+    .btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+        margin: 2rem 0;
+    }
+</style>

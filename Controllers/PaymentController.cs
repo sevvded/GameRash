@@ -36,7 +36,7 @@ namespace GameRash.Controllers
                         p.PaymentMethod,
                         p.PaymentDate,
                         p.Status,
-                        Amount = p.Purchase != null ? CalculateAmount(p.Purchase.GameID) : 0, // You'll need to implement price logic
+                        p.Amount,
                         Username = p.Purchase != null && p.Purchase.User != null ? p.Purchase.User.Username : null,
                         GameTitle = p.Purchase != null && p.Purchase.Game != null ? p.Purchase.Game.Title : null
                     })
@@ -70,7 +70,7 @@ namespace GameRash.Controllers
                         p.PaymentMethod,
                         p.PaymentDate,
                         p.Status,
-                        Amount = CalculateAmount(p.Purchase.GameID),
+                        p.Amount,
                         Purchase = new
                         {
                             p.Purchase.PurchaseID,
@@ -94,8 +94,8 @@ namespace GameRash.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
-
-
+        
+        
         // POST: api/payment
         [HttpPost]
         public async Task<ActionResult<Payment>> ProcessPayment(PaymentRequest request)
@@ -126,8 +126,11 @@ namespace GameRash.Controllers
                     return BadRequest("Payment already processed for this purchase");
                 }
 
+                // Calculate amount (game price + tax)
+                var amount = purchase.Game.Price * 1.18m; // Adding 18% tax
+
                 // Process payment (integrate with actual payment gateway here)
-                var paymentResult = await ProcessPaymentWithGateway(request);
+                var paymentResult = await ProcessPaymentWithGateway(request, amount);
 
                 if (!paymentResult.Success)
                 {
@@ -139,6 +142,7 @@ namespace GameRash.Controllers
                 {
                     PurchaseID = request.PurchaseID,
                     PaymentMethod = request.PaymentMethod,
+                    Amount = amount,
                     PaymentDate = DateTime.UtcNow,
                     Status = paymentResult.Success ? "Completed" : "Failed"
                 };
@@ -170,10 +174,9 @@ namespace GameRash.Controllers
                     .Where(p => p.Status == "Completed")
                     .CountAsync();
 
-                var totalRevenue = await _context.Purchases
-                    .Include(p => p.Payments)
-                    .Where(p => p.Payments.Any(pay => pay.Status == "Completed"))
-                    .SumAsync(p => CalculateAmount(p.GameID));
+                var totalRevenue = await _context.Payments
+                    .Where(p => p.Status == "Completed")
+                    .SumAsync(p => p.Amount);
 
                 var paymentMethodStats = await _context.Payments
                     .Where(p => p.Status == "Completed")
@@ -182,7 +185,7 @@ namespace GameRash.Controllers
                     {
                         PaymentMethod = g.Key,
                         Count = g.Count(),
-                        Percentage = Math.Round((double)g.Count() / totalPayments * 100, 2)
+                        Percentage = totalPayments > 0 ? Math.Round((double)g.Count() / totalPayments * 100, 2) : 0
                     })
                     .ToListAsync();
 
@@ -193,7 +196,7 @@ namespace GameRash.Controllers
                     {
                         Year = g.Key.Year,
                         Month = g.Key.Month,
-                        Revenue = g.Sum(p => CalculateAmount(p.Purchase.GameID)),
+                        Revenue = g.Sum(p => p.Amount),
                         TransactionCount = g.Count()
                     })
                     .OrderBy(x => x.Year)
@@ -222,21 +225,12 @@ namespace GameRash.Controllers
         }
 
         // Private helper methods
-        private decimal CalculateAmount(int gameId)
+        private async Task<PaymentResult> ProcessPaymentWithGateway(PaymentRequest request, decimal amount)
         {
-            // This is a placeholder - implement your actual pricing logic
-            // You might want to add a Price field to your Game model
-            // or have a separate pricing service
-            return 59.99m; // Default game price
-        }
+            // Mock payment gateway integration
+            await Task.Delay(1000); // Simulate processing time
 
-        private async Task<PaymentResult> ProcessPaymentWithGateway(PaymentRequest request)
-        {
-            // Implement actual payment gateway integration here
-            // For now, this is a mock implementation
-            await Task.Delay(100); // Simulate API call
-
-            // Mock success for demonstration
+            // Mock success for demonstration (in real implementation, integrate with actual gateway)
             return new PaymentResult
             {
                 Success = true,

@@ -89,7 +89,7 @@ namespace GameRash.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || 
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) ||
                     string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
                 {
                     TempData["ErrorMessage"] = "Tüm alanlar gereklidir.";
@@ -130,16 +130,16 @@ namespace GameRash.Controllers
                 try
                 {
                     // User oluştur
-                var hashedPassword = HashPassword(password);
-                var newUser = new User
-                {
-                    Username = username,
-                    Email = email,
-                    Password = hashedPassword
-                };
+                    var hashedPassword = HashPassword(password);
+                    var newUser = new User
+                    {
+                        Username = username,
+                        Email = email,
+                        Password = hashedPassword
+                    };
 
-                _context.Users.Add(newUser);
-                await _context.SaveChangesAsync();
+                    _context.Users.Add(newUser);
+                    await _context.SaveChangesAsync();
 
                     // Kullanıcı tipine göre ek kayıt
                     if (userType == "admin")
@@ -164,9 +164,9 @@ namespace GameRash.Controllers
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                TempData["SuccessMessage"] = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
-                return RedirectToAction("Login");
-            }
+                    TempData["SuccessMessage"] = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+                    return RedirectToAction("Login");
+                }
                 catch
                 {
                     await transaction.RollbackAsync();

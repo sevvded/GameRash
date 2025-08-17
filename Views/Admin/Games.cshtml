@@ -1,0 +1,175 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Oyun Yönetimi - Admin Panel";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-gamepad me-2"></i>Oyun Yönetimi</h2>
+                <a href="@Url.Action("AddGame", "Admin")" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Yeni Oyun Ekle
+                </a>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Görsel</th>
+                                    <th>Başlık</th>
+                                    <th>Developer</th>
+                                    <th>Fiyat</th>
+                                    <th>Değerlendirme</th>
+                                    <th>Yorum Sayısı</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var game in Model)
+                                {
+                                    <tr>
+                                        <td>@game.GameID</td>
+                                        <td>
+                                            <img src="@(string.IsNullOrEmpty(game.CoverImage) ? "/images/indir.jpeg" : "/images/" + game.CoverImage)"
+                                                 alt="@game.Title" class="table-image">
+                                        </td>
+                                        <td>
+                                            <strong>@game.Title</strong>
+                                            <br>
+                                            <small class="text-muted">@(game.Description.Length > 50 ? game.Description.Substring(0, 50) + "..." : game.Description)</small>
+                                        </td>
+                                        <td>@game.DeveloperName</td>
+                                        <td><span class="badge bg-success">₺@game.Price.ToString("F2")</span></td>
+                                        <td>
+                                            <div class="rating-display">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= game.AverageRating)
+                                                    {
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-warning"></i>
+                                                    }
+                                                }
+                                                <br>
+                                                <small class="text-muted">@game.AverageRating.ToString("F1")</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@game.ReviewCount</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("EditGame", "Admin", new { id = game.GameID })"
+                                                   class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="confirmDelete(@game.GameID, '@game.Title')" title="Sil">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(gameId, gameTitle) {
+        if (confirm(`"${gameTitle}" adlı oyunu silmek istediğinizden emin misiniz?`)) {
+            fetch('/Admin/DeleteGame/' + gameId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Hata: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bir hata oluştu');
+            });
+        }
+    }
+</script>
+
+<style>
+    .table-image {
+        width: 60px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .rating-display {
+        text-align: center;
+    }
+
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+    }
+
+    .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+</style>

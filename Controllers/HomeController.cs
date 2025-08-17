@@ -48,5 +48,21 @@ namespace GameRash.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public async Task<IActionResult> GameDetails(int id)
+        {
+            var game = await _context.Games
+                .Include(g => g.Developer)
+                .Include(g => g.GameReviews)
+                    .ThenInclude(gr => gr.User)
+                .FirstOrDefaultAsync(g => g.GameID == id);
+
+            if (game == null)
+            {
+                return NotFound();
+            }
+
+            return View(game);
+        }
     }
 }

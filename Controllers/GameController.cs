@@ -5,9 +5,7 @@ using GameRash.Models;
 
 namespace GameRash.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class GameController : ControllerBase
+    public class GameController : Controller
     {
         private readonly GameRashDbContext _context;
         private readonly ILogger<GameController> _logger;
@@ -18,204 +16,207 @@ namespace GameRash.Controllers
             _logger = logger;
         }
 
-        // GET: api/game
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetGames()
+        // GET: /Game/Details/5
+        public async Task<IActionResult> Details(int id)
         {
             try
             {
-                var games = await _context.Games
+                var game = await _context.Games
                     .Include(g => g.Developer)
                     .Include(g => g.GameReviews)
-                    .Select(g => new
-                    {
-                        g.GameID,
-                        g.Title,
-                        g.Description,
-                        g.CoverImage,
-                        g.DeveloperID,
-                        DeveloperName = g.Developer != null ? g.Developer.StudioName : null,
-                        AverageRating = g.GameReviews.Any() ? g.GameReviews.Average(gr => gr.Rating) : 0,
-                        ReviewCount = g.GameReviews.Count
-                    })
-                    .ToListAsync();
-                
-                return Ok(games);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting games");
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // GET: api/game/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetGame(int id)
-        {
-            try
-            {
-                // Temel oyun bilgilerini alalım
-                var game = await _context.Games
-                    .Where(g => g.GameID == id)
-                    .Select(g => new
-                    {
-                        g.GameID,
-                        g.Title,
-                        g.Description,
-                        g.CoverImage,
-                        g.DeveloperID
-                    })
-                    .FirstOrDefaultAsync();
+                        .ThenInclude(gr => gr.User)
+                    .FirstOrDefaultAsync(g => g.GameID == id);
 
                 if (game == null)
                 {
                     return NotFound($"Game with ID {id} not found");
                 }
 
-                // Developer bilgilerini ayrı sorgu ile alalım
-                var developerInfo = await _context.Developers
-                    .Where(d => d.DeveloperID == game.DeveloperID)
-                    .Select(d => new { d.StudioName, d.Bio })
-                    .FirstOrDefaultAsync();
+                var userId = HttpContext.Session.GetString("UserId");
+                bool userOwnsGame = false;
+                bool userHasReviewed = false;
 
-                // Yorum bilgilerini ayrı sorgu ile alalım
-                var reviews = await _context.GameReviews
-                    .Include(gr => gr.User)
-                    .Where(gr => gr.GameID == id)
-                    .Select(gr => new
-                    {
-                        gr.ReviewID,
-                        gr.UserID,
-                        Username = gr.User != null ? gr.User.Username : null,
-                        gr.Rating
-                    })
-                    .ToListAsync();
-
-                // Satın alma sayısını alalım
-                var purchaseCount = await _context.Purchases
-                    .Where(p => p.GameID == id)
-                    .CountAsync();
-
-                // Kütüphaneye eklenme sayısını alalım
-                var libraryCount = await _context.Libraries
-                    .Where(l => l.GameID == id)
-                    .CountAsync();
-
-                // İstek listesine eklenme sayısını alalım
-                var wishlistCount = await _context.Wishlists
-                    .Where(w => w.GameID == id)
-                    .CountAsync();
-
-                // Tüm bilgileri birleştirip döndür
-                var result = new
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    game.GameID,
-                    game.Title,
-                    game.Description,
-                    game.CoverImage,
-                    game.DeveloperID,
-                    DeveloperStudio = developerInfo?.StudioName,
-                    DeveloperBio = developerInfo?.Bio,
-                    AverageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0,
-                    ReviewCount = reviews.Count,
-                    PurchaseCount = purchaseCount,
-                    LibraryCount = libraryCount,
-                    WishlistCount = wishlistCount,
-                    Reviews = reviews
+                    userOwnsGame = await _context.Libraries
+                        .AnyAsync(l => l.UserID == int.Parse(userId) && l.GameID == id);
+
+                    userHasReviewed = await _context.GameReviews
+                        .AnyAsync(gr => gr.UserID == int.Parse(userId) && gr.GameID == id);
+                }
+
+                ViewBag.UserOwnsGame = userOwnsGame;
+                ViewBag.UserHasReviewed = userHasReviewed;
+                ViewBag.UserId = userId;
+
+                return View(game);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting game details for ID {GameId}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // POST: /Game/AddReview
+        [HttpPost]
+        public async Task<IActionResult> AddReview(int gameId, int rating, string reviewText = "")
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Giriş yapmanız gerekiyor" });
+            }
+
+            try
+            {
+                // Check if user owns the game
+                var userOwnsGame = await _context.Libraries
+                    .AnyAsync(l => l.UserID == int.Parse(userId) && l.GameID == gameId);
+
+                if (!userOwnsGame)
+                {
+                    return Json(new { success = false, message = "Sadece sahip olduğunuz oyunlara yorum yapabilirsiniz" });
+                }
+
+                // Check if user already reviewed this game
+                var existingReview = await _context.GameReviews
+                    .FirstOrDefaultAsync(gr => gr.UserID == int.Parse(userId) && gr.GameID == gameId);
+
+                if (existingReview != null)
+                {
+                    return Json(new { success = false, message = "Bu oyunu zaten değerlendirdiniz" });
+                }
+
+                var review = new GameReview
+                {
+                    UserID = int.Parse(userId),
+                    GameID = gameId,
+                    Rating = rating
                 };
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting game with ID {GameId}", id);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // POST: api/game
-        [HttpPost]
-        public async Task<ActionResult<Game>> CreateGame(Game game)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                _context.Games.Add(game);
+                _context.GameReviews.Add(review);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetGame), new { id = game.GameID }, game);
+                return Json(new { success = true, message = "Yorumunuz eklendi" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating game");
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError(ex, "Error adding review");
+                return Json(new { success = false, message = "Bir hata oluştu" });
             }
         }
 
-        // PUT: api/game/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGame(int id, Game game)
+        // GET: /Game/Purchase/5
+        public async Task<IActionResult> Purchase(int id)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
             try
             {
-                if (id != game.GameID)
-                {
-                    return BadRequest("Game ID mismatch");
-                }
+                var game = await _context.Games
+                    .Include(g => g.Developer)
+                    .FirstOrDefaultAsync(g => g.GameID == id);
 
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var existingGame = await _context.Games.FindAsync(id);
-                if (existingGame == null)
-                {
-                    return NotFound($"Game with ID {id} not found");
-                }
-
-                existingGame.Title = game.Title;
-                existingGame.Description = game.Description;
-                existingGame.CoverImage = game.CoverImage;
-                existingGame.DeveloperID = game.DeveloperID;
-
-                await _context.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating game with ID {GameId}", id);
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        // DELETE: api/game/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGame(int id)
-        {
-            try
-            {
-                var game = await _context.Games.FindAsync(id);
                 if (game == null)
                 {
-                    return NotFound($"Game with ID {id} not found");
+                    return NotFound("Oyun bulunamadı");
                 }
 
-                _context.Games.Remove(game);
-                await _context.SaveChangesAsync();
+                // Check if user already owns this game
+                var userOwnsGame = await _context.Libraries
+                    .AnyAsync(l => l.UserID == int.Parse(userId) && l.GameID == id);
 
-                return NoContent();
+                if (userOwnsGame)
+                {
+                    TempData["ErrorMessage"] = "Bu oyun zaten kütüphanenizde bulunuyor";
+                    return RedirectToAction("Details", new { id = id });
+                }
+
+                return View(game);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting game with ID {GameId}", id);
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError(ex, "Error loading purchase page for game {GameId}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // POST: /Game/CompletePurchase
+        [HttpPost]
+        public async Task<IActionResult> CompletePurchase(int gameId, string paymentMethod)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Giriş yapmanız gerekiyor" });
+            }
+
+            try
+            {
+                // Get game details
+                var game = await _context.Games.FindAsync(gameId);
+                if (game == null)
+                {
+                    return Json(new { success = false, message = "Oyun bulunamadı" });
+                }
+
+                // Check if user already owns this game
+                var userOwnsGame = await _context.Libraries
+                    .AnyAsync(l => l.UserID == int.Parse(userId) && l.GameID == gameId);
+
+                if (userOwnsGame)
+                {
+                    return Json(new { success = false, message = "Bu oyun zaten kütüphanenizde bulunuyor" });
+                }
+
+                // Create purchase record
+                var purchase = new Purchase
+                {
+                    UserID = int.Parse(userId),
+                    GameID = gameId,
+                    PurchaseDate = DateTime.UtcNow
+                };
+
+                _context.Purchases.Add(purchase);
+                await _context.SaveChangesAsync();
+
+                // Calculate total amount with tax
+                var totalAmount = game.Price * 1.18m; // Adding 18% tax
+
+                // Create payment record
+                var payment = new Payment
+                {
+                    PurchaseID = purchase.PurchaseID,
+                    PaymentMethod = paymentMethod,
+                    Amount = totalAmount,
+                    PaymentDate = DateTime.UtcNow,
+                    Status = "Completed"
+                };
+
+                _context.Payments.Add(payment);
+
+                // Add game to user's library
+                var libraryEntry = new Library
+                {
+                    UserID = int.Parse(userId),
+                    GameID = gameId,
+                    AddedDate = DateTime.UtcNow
+                };
+
+                _context.Libraries.Add(libraryEntry);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Satın alma işlemi başarılı! Oyun kütüphanenize eklendi." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing purchase for game {GameId}", gameId);
+                return Json(new { success = false, message = "Satın alma işlemi sırasında bir hata oluştu" });
             }
         }
     }
