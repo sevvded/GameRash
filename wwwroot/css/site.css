@@ -25,7 +25,6 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background-attachment: fixed;
-    min-height: 100vh;
     color: var(--text-primary);
     line-height: 1.6;
 }
@@ -369,27 +368,13 @@ body {
     margin-bottom: 0.5rem;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
-    min-height: 100vh;
-    color: var(--text-primary);
-    line-height: 1.6;
-    
-    display: flex;
-    flex-direction: column;
-}
-
 /* Footer */
 .footer {
     background: rgba(45, 52, 54, 0.95);
     color: rgba(255, 255, 255, 0.8);
     padding: 2rem 0;
     margin-top: auto;
-    backdrop-filter: blur(10px);
     position: relative;
-    width: 100%;
     z-index: 1;
 }
 
@@ -402,13 +387,6 @@ body {
         .footer a:hover {
             color: white;
         }
-
-
-
-main {
-    min-height: calc(100vh - 200px);
-    padding-bottom: 2rem;
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
